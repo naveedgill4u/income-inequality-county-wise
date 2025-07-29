@@ -1,0 +1,134 @@
+---
+title: "income inequality"
+author: Naveed Ahmad
+execute: 
+  echo: false
+---
+
+```{r}
+#| message: false
+#| warning: false
+#| results: 'hide'
+library(tidyverse)
+library(tidycensus)
+library(dplyr)
+library(GGally)
+library(ggplot2)
+library(ggthemes)
+```
+
+```{r}
+#| warning: false
+multi_vars <- c(
+  gini = "B19083_001",
+  median_income = "B19013_001",
+  poverty = "B17001_002",                    # Below poverty
+  education_total = "B15003_001",           # Total population 25+
+  education_bachelor = "B15003_022",        # Bachelor's degree
+  labor_force = "B23025_003",               # Labor force
+  unemployed = "B23025_005")                # Unemployed
+
+socio_data <- get_acs(
+  geography = "county",
+  variables = multi_vars,
+  year = 2020,
+  survey = "acs5",
+  output = "wide")
+
+# Clean and calculate additional metrics
+socio_clean <- socio_data |>
+  transmute(
+    county = NAME,
+    gini = giniE,
+    median_income = median_incomeE,
+    poverty = povertyE,
+    education_rate = education_bachelorE / education_totalE * 100,
+    unemployment_rate = unemployedE / labor_forceE * 100)
+
+socio_clean
+```
+
+```{r}
+#| warning: false
+plot_data <- socio_clean |>
+  mutate(
+    log_income = log(median_income),
+    log_poverty = log(poverty + 1)) |>
+  select(
+    Gini = gini,
+    `Log Income` = log_income,
+    `Log Poverty` = log_poverty,
+    `Education Rate (%)` = education_rate,
+    `Unemployment Rate (%)` = unemployment_rate)
+
+# Plot with universal point color
+ggpairs(
+  plot_data,
+  lower = list(continuous = function(data, mapping, ...) {
+    ggplot(data = data, mapping = mapping) +
+      geom_point(alpha = 0.6, color = "skyblue") +
+      geom_smooth(method = "loess", se = FALSE, color = "red", linetype = "dashed", size = 0.5)}),
+  upper = list(continuous = wrap("cor", size = 3)),
+  diag = list(continuous = wrap("densityDiag", alpha = 0.4, fill = "#69b3a2"))) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12, color = "gray30"),
+    plot.caption = element_text(size = 10, color = "gray40"),
+    strip.text.y = element_text(angle = 0, hjust = 1))  +
+  labs(
+    title = "Income Inequality with other Indicators in U.S",
+    subtitle = "Education and Income have negative But Povery and Unemployment have positive relationship with Income Inequality",
+    caption = "Source: American Community Survey (ACS) 2020")
+```
+
+```{r}
+socio_clean <- socio_clean |>
+  mutate(
+    log_income = log(median_income),
+    log_poverty = log(poverty + 1))  # add 1 to avoid log(0)
+  
+socio_scaled <- socio_clean |>
+  mutate(across(c(gini, log_income, log_poverty),  scale))
+
+socio_scaled_data <- socio_scaled |>
+    select(county, gini, log_income, log_poverty)        
+
+socio_scaled_data
+
+plot_data_scaled <- socio_scaled |>
+    select(gini, log_income, log_poverty, education_rate, unemployment_rate)    
+
+plot_data_scaled
+```
+
+```{r}
+#| warning: false
+socio_long <- plot_data_scaled |>
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+
+# Plot histograms for all variables with faceting and custom theming
+ggplot(socio_long, aes(x = value, fill = variable)) +
+  geom_histogram(bins = 40, color = "white", alpha = 0.85) +
+  facet_wrap(~ variable, scales = "free", ncol = 3) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text = element_text(face = "bold", size = 14, color = "navy"),
+    axis.title = element_blank(),
+    axis.text = element_text(color = "gray30"),
+    panel.grid.major = element_line(color = "gray85"),
+    legend.position = "none",
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    plot.caption = element_text(size = 10, color = "gray40", hjust = 1)
+  ) +
+  labs(
+    title = "Distribution of Variables After Scale",
+    caption = "Source: American Community Survey (ACS) 2020"
+  )
+```
+
+```{r}
+
+
+```
