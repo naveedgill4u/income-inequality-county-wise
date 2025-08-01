@@ -1,0 +1,216 @@
+---
+title: "Analysis"
+author: Naveed Ahmad
+format: html
+---
+
+## Libraries
+Following libraries were loaded for performing analysis.
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(tidycensus)
+library(dplyr)
+library(GGally)
+library(ggplot2)
+library(ggthemes)
+library(tidymodels)
+library(car)
+```
+
+## 1. Explanatory Data Analysis
+Following code was used for loading and tyding data.
+```{r}
+#| warning: false
+multi_vars <- c(
+  gini = "B19083_001",
+  median_income = "B19013_001",
+  poverty = "B17001_002",                    # Below poverty
+  education_total = "B15003_001",           # Total population 25+
+  education_bachelor = "B15003_022",        # Bachelor's degree
+  labor_force = "B23025_003",               # Labor force
+  unemployed = "B23025_005")                # Unemployed
+
+socio_data <- get_acs(
+  geography = "county",
+  variables = multi_vars,
+  year = 2020,
+  survey = "acs5",
+  output = "wide")
+
+# Clean and calculate additional metrics
+socio_clean <- socio_data |>
+  transmute(
+    county = NAME,
+    gini = giniE,
+    median_income = median_incomeE,
+    poverty = povertyE,
+    education_rate = education_bachelorE / education_totalE * 100,
+    unemployment_rate = unemployedE / labor_forceE * 100)
+
+```
+
+#  1.1 Summary of Variables 
+```{r}
+summary(socio_clean)
+```
+
+#  1.2 Plot
+Code for Plot for EDA
+```{r}
+#| warning: false
+plot_data <- socio_clean |>
+  mutate(
+    log_income = log(median_income),
+    log_poverty = log(poverty + 1)) |>
+  select(
+    Gini = gini,
+    `Log Income` = log_income,
+    `Log Poverty` = log_poverty,
+    `Education Rate (%)` = education_rate,
+    `Unemployment Rate (%)` = unemployment_rate)
+
+# Plot
+ggpairs(
+  plot_data,
+  lower = list(continuous = function(data, mapping, ...) {
+    ggplot(data = data, mapping = mapping) +
+      geom_point(alpha = 0.6, color = "skyblue") +
+      geom_smooth(method = "loess", se = FALSE, color = "red", linetype = "dashed", size = 0.5)}),
+  upper = list(continuous = wrap("cor", size = 3)),
+  diag = list(continuous = wrap("densityDiag", alpha = 0.4, fill = "#69b3a2"))) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12, color = "gray30"),
+    plot.caption = element_text(size = 10, color = "gray40"),
+    strip.text.y = element_text(angle = 0, hjust = 1))  +
+  labs(
+    title = "Income Inequality with other Indicators in U.S",
+    subtitle = "Education and Income have negative But Povery and Unemployment have positive relationship with Income Inequality",
+    caption = "Source: American Community Survey (ACS) 2020")
+```
+
+<div style="text-align: justify;">Above plot shows that increse in Education and Income has reduced income inequality whereas, increse in unemployment and poverty has incresed income inequality. The relationship among income inequality (gini) and other social indicators can be seen in plot. Log of income and poverty were taken for better comparision purpose. Further, Histograms of every indicator can also be seen in dignal which shows that distributions of gini, log income, log poverty are normal but distributions of education rate and unemployment rate are slightly and significantly right skewed respectively.</div>
+
+# 2. Data Normality 
+
+<div style="text-align: justify;">Skewness in distribution can influnce the model, therfore, all the variables were scaled to have better results for comparision or explanation. Following code was used for log and scale.</div>
+
+```{r} 
+socio_clean <- socio_clean |>
+  mutate(
+    log_income = log(median_income),
+    log_poverty = log(poverty + 1))  # add 1 to avoid log(0)
+  
+socio_scaled <- socio_clean |>
+  mutate(across(c(log_income, log_poverty, education_rate, unemployment_rate),  scale))
+
+socio_scaled_data <- socio_scaled |>
+  select(gini, log_income, log_poverty, education_rate, unemployment_rate)
+```
+
+#  2.1 Histogram
+<div style="text-align: justify;">Code for histograms of variables.</div>
+
+```{r}
+#| warning: false
+plot_socio_scaled <- socio_scaled_data |>
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+
+# Plot histograms for all variables with faceting and custom theming
+ggplot(plot_socio_scaled, aes(x = value, fill = variable)) +
+  geom_histogram(bins = 40, color = "white", alpha = 0.85) +
+  facet_wrap(~ variable, scales = "free", ncol = 3) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text = element_text(face = "bold", size = 14, color = "navy"),
+    axis.title = element_blank(),
+    axis.text = element_text(color = "gray30"),
+    panel.grid.major = element_line(color = "gray85"),
+    legend.position = "none",
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+    plot.caption = element_text(size = 10, color = "gray40", hjust = 1)
+  ) +
+  labs(
+    title = "Distribution of Variables After Scale",
+    caption = "Source: American Community Survey (ACS) 2020"
+  )
+```
+
+<div style="text-align: justify;">Above histograms show that distributions of gini, log_income, log_poverty are normal howerver, distributions of education_rate and unemploment_rate are still rightly skewed. Hence, scale of variables is purposeless.</div>
+
+#  2.2 Shapiro test
+<div style="text-align: justify;">Shapiro test also checks whether distribution is normal or not. If results show that W value is equal to 1 and p value is > 0.05 then distribution is normal.</div>
+
+#  2.2.1 Unemployment Rate 
+```{r}
+# Data Normality test
+unemployment_rate <- socio_scaled_data |> pull(unemployment_rate)
+shapiro.test(unemployment_rate)
+```
+
+#  2.2.2 Education Rate
+```{r}
+education_rate <- socio_scaled_data |> pull(education_rate)
+shapiro.test(education_rate)
+```
+
+<div style="text-align: justify;">In case of both variables; unemployment_rate and education_rate, shapiro showed that distributions are not normal.</div>
+
+# 3.  Model
+<div style="text-align: justify;">Since my outcome variable was continues therfore, Liner Regression Model was applied. Following is the general form of a linear regression model.</div>
+
+$$
+Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_p X_{pi} + \varepsilon_i
+$$
+
+Where:
+- \( Y_i \) is the dependent (response) variable,
+- \( X_{1i}, X_{2i}, \ldots, X_{pi} \) are the independent variables (predictors),
+- \( \beta_0 \) is the intercept,
+- \( \beta_1, \ldots, \beta_p \) are regression coefficients,
+- \( \varepsilon_i \sim \mathcal{N}(0, \sigma^2) \) is the error term assumed to follow a normal distribution.
+
+Probability Family Function when the outcome variable is normally distributed:
+
+$$
+Y_i \sim \mathcal{N}(\mu_i, \sigma^2), \quad \text{where} \quad \mu_i = \beta_0 + \beta_1 X_{1i} + \cdots + \beta_p X_{pi}
+$$
+
+The likelihood function for all \( n \) observations is:
+
+$$
+L(\boldsymbol{\beta}, \sigma^2) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{(Y_i - \mu_i)^2}{2\sigma^2} \right)
+$$
+
+
+# 3.1 Regression Coefficients
+Code for selection of variables for model and code for model
+```{r}
+socio_clean1 <- socio_clean |>
+  select(gini, median_income ,poverty, education_rate, unemployment_rate )
+```
+
+```{r}
+income_inequality <- linear_reg() |> 
+   fit(gini ~ median_income + poverty + education_rate + unemployment_rate, data = socio_clean1)
+```
+
+```{r}
+income_inequality |> 
+  tidy(conf.int = TRUE)
+```
+
+<div style="text-align: justify;">EDA show that unemployment rate has negative correlation with income inequality but coeffients show that it predicts positivel. Hence, need for Variance Inflation Factor (VIF) analysis to see whether the change of coefficient sign is due to multicollinearity.</div>
+
+# VIF analysis
+code and results
+```{r}
+vif(lm(gini ~ median_income + poverty + education_rate + unemployment_rate, data = socio_clean1))
+```
+
+<div style="text-align: justify;">VIF between 1 to 5 means acceptable multicollinearity among predictors. However, beyound 5 means problematic. Here, VIF results show that there is no multicollinearity. Therefore, it was decided to remove unemployment rate because it may disturbe the model results because in model coefficients its results sign is not consistant with EDA</div>
+

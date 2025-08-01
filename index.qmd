@@ -6,13 +6,12 @@ execute:
 ---
 
 ## Summary
-<div style="text-align: justify;"> United Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the glob. In this document, I have explained a picture of income inequality in U.S at county level by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality.
+<div style="text-align: justify;"> United Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the glob. In this document, I have explained a picture of income inequality in U.S by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality.
 Income Inequality (gini) has link with many social indicators however, in this study, outcome variable is gini with covariates; income, poverty, education rate and umemployment rate in U.S. First, EDA was conducted. Then, liner regression model was used to predict the income inequlaity as function of income, poverty, education rate, and unemployment rate.</div>
 
 ```{r}
 #| message: false
 #| warning: false
-
 library(tidyverse)
 library(tidycensus)
 library(dplyr)
@@ -53,9 +52,9 @@ socio_clean <- socio_data |>
 
 ```
 
-## 1.  Explanatory Data Analysis
-#  1.1 Plot
+## 1. Explanatory Data Analysis
 <div style="text-align: justify;">Increse in Education and Income had reduced income inequality whereas, increse in unemployment and poverty had incresed income inequality. The relationship among income inequality (gini) and other social indicators can be seen in plot. Log of income and poverty were taken for better comparision purpose. Further, Histograms of every indicator can also be seen in dignal which shows that distributions of gini, log income, log poverty are normal but distributions of education rate and unemployment rate are slightly and significantly right skewed respectively.</div>
+
 
 ```{r}
 #| warning: false
@@ -91,88 +90,22 @@ ggpairs(
     caption = "Source: American Community Survey (ACS) 2020")
 ```
 
-#  1.2 Summary of Variables 
-```{r}
-summary(socio_clean)
-```
+## 2.  Model
+<div style="text-align: justify;">Since my outcome variable was continues therfore, Liner Regression Model was applied. Following is the general form of a linear regression model.</div>
 
-```{r} 
-# Distributions of two variables were skewed to right, hence, data cleaning and scaling
-socio_clean <- socio_clean |>
-  mutate(
-    log_income = log(median_income),
-    log_poverty = log(poverty + 1))  # add 1 to avoid log(0)
-  
-socio_scaled <- socio_clean |>
-  mutate(across(c(log_income, log_poverty, education_rate, unemployment_rate),  scale))
+$$
+Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_p X_{pi} + \varepsilon_i
+$$
 
-socio_scaled_data <- socio_scaled |>
-  select(gini, log_income, log_poverty, education_rate, unemployment_rate)
-```
-
-## 2.  Data Normality Check
-#  2.1 Histogram
-<div style="text-align: justify;">Variation in data of variables can influnce the model, therfore, all the variables were scaled to have better results for comparision or explanation. Following histograms show that distributions of gini, log_income, log_poverty are normal howerver, distributions of education_rate and unemploment_rate are still rightly skewed. Hence, scale of variables is purposeless.</div>
-
-```{r}
-#| warning: false
-plot_socio_scaled <- socio_scaled_data |>
-  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
-
-# Plot histograms for all variables with faceting and custom theming
-ggplot(plot_socio_scaled, aes(x = value, fill = variable)) +
-  geom_histogram(bins = 40, color = "white", alpha = 0.85) +
-  facet_wrap(~ variable, scales = "free", ncol = 3) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal(base_size = 14) +
-  theme(
-    strip.text = element_text(face = "bold", size = 14, color = "navy"),
-    axis.title = element_blank(),
-    axis.text = element_text(color = "gray30"),
-    panel.grid.major = element_line(color = "gray85"),
-    legend.position = "none",
-    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
-    plot.caption = element_text(size = 10, color = "gray40", hjust = 1)
-  ) +
-  labs(
-    title = "Distribution of Variables After Scale",
-    caption = "Source: American Community Survey (ACS) 2020"
-  )
-```
-
-#  2.2 Shapiro test
-<div style="text-align: justify;">Shapiro test also checks whether distribution is normal or not. If results show that W value is equal to 1 and p value is > 0.05 then distribution is normal. In case of both variables; unemployment_rate and education_rate, shapiro showed that distributions are not normal.</div>
-
-#  2.2.1 Unemployment Rate
-
-```{r}
-# Data Normality test
-unemployment_rate <- socio_scaled_data |> pull(unemployment_rate)
-shapiro.test(unemployment_rate)
-
-```
-
-#  2.2.2 Education Rate
-```{r}
-education_rate <- socio_scaled_data |> pull(education_rate)
-shapiro.test(education_rate)
-
-```
-
-<div style="text-align: justify;">The scale of variables was purposeless. It was decided to run the model without scale.</div>
 
 ```{r}
 socio_clean1 <- socio_clean |>
   select(gini, median_income ,poverty, education_rate, unemployment_rate )
 ```
 
-## 3.  Model
-<div style="text-align: justify;">Since my outcome variable was continues therfore, Liner Regression Model was applied.</div>
-
-
 ```{r}
 income_inequality <- linear_reg() |> 
-   fit(gini ~ median_income + poverty + education_rate + unemployment_rate, data = socio_clean1)
+   fit(gini ~ median_income + poverty + education_rate, data = socio_clean1)
 ```
 
 ```{r}
@@ -189,10 +122,4 @@ $$
 + 0.00249 \cdot \text{UnemploymentRate}
 $$
 
-## 
-```{r}
-
-vif(lm(gini ~ median_income + poverty + education_rate + unemployment_rate, data = socio_clean1))
-
-```
 
