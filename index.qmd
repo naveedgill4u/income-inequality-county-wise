@@ -1,5 +1,5 @@
 ---
-title: "income inequality"
+title: "Income Inequality in U.S"
 author: Naveed Ahmad
 execute: 
   echo: false
