@@ -7,19 +7,20 @@ execute:
 
 ## Summary
 <div style="text-align: justify;"> United Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the glob. In this document, I have explained a picture of income inequality in U.S by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality.
-Income Inequality (gini) has link with many social indicators however, in this study, outcome variable is gini with covariates; income, poverty, education rate and umemployment rate in U.S. First, EDA was conducted. Then, liner regression model was used to predict the income inequlaity as function of income, poverty, education rate, and unemployment rate.</div>
+Income Inequality (gini) has link with many social indicators however, in this study, outcome variable is gini with covariates; income, poverty, education rate and umemployment rate in U.S. First, EDA was conducted. Then, liner regression model was used to predict the income inequlaity as function of income, poverty, and unemployment rate. The predictions of this study are based upon some assumptios, for example, if there is chnage in income, poverty and unemployment rate due to reforms or other opportunities, the future results may be different. The intercept shows that holding other things constant, income inequality (Gini Index) is predicted to be 0.475 with variation from 0.468 to 0.481</div>
 
 ```{r}
 #| message: false
 #| warning: false
 library(tidyverse)
 library(tidycensus)
-library(dplyr)
 library(GGally)
 library(ggplot2)
 library(ggthemes)
 library(tidymodels)
 library(car)
+library(marginaleffects)
+library(broom)
 ```
 
 ```{r}
@@ -47,9 +48,8 @@ socio_clean <- socio_data |>
     gini = giniE,
     median_income = median_incomeE,
     poverty = povertyE,
-    education_rate = education_bachelorE / education_totalE * 100,
-    unemployment_rate = unemployedE / labor_forceE * 100)
-
+    education_rate = education_bachelorE / education_totalE,
+    unemployment_rate = unemployedE / labor_forceE)
 ```
 
 ## 1. Explanatory Data Analysis
@@ -66,8 +66,8 @@ plot_data <- socio_clean |>
     Gini = gini,
     `Log Income` = log_income,
     `Log Poverty` = log_poverty,
-    `Education Rate (%)` = education_rate,
-    `Unemployment Rate (%)` = unemployment_rate)
+    `Education Rate` = education_rate,
+    `Unemployment Rate` = unemployment_rate)
 
 # Plot
 ggpairs(
@@ -90,36 +90,50 @@ ggpairs(
     caption = "Source: American Community Survey (ACS) 2020")
 ```
 
-## 2.  Model
-<div style="text-align: justify;">Since my outcome variable was continues therfore, Liner Regression Model was applied. Following is the general form of a linear regression model.</div>
-
-$$
-Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_p X_{pi} + \varepsilon_i
-$$
-
-
+## 2.  Model Results
+Model plot and predictions plot are here under:
 ```{r}
-socio_clean1 <- socio_clean |>
-  select(gini, median_income ,poverty, education_rate, unemployment_rate )
+socio_clean <- socio_clean |>
+  mutate(
+    income = median_income / 100000,
+    poverty = poverty / 100000) |>
+  select(gini, income ,poverty, unemployment_rate )
 ```
 
 ```{r}
-income_inequality <- linear_reg() |> 
-   fit(gini ~ median_income + poverty + education_rate, data = socio_clean1)
+fit_income_inequality <- linear_reg() |> 
+   fit(gini ~ income + poverty + unemployment_rate, data = socio_clean)
 ```
 
+# 2.2 Model Plot
 ```{r}
-income_inequality |> 
-  tidy(conf.int = TRUE)
+tidy(fit_income_inequality) |>
+  filter(term %in% c("income", "poverty", "unemployment_rate")) |>
+  ggplot(aes(x = term, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = estimate - 1.96*std.error, 
+                    ymax = estimate + 1.96*std.error))
+```
+```{r}
+pred_data <- predictions(fit_income_inequality)
 ```
 
-# Data Generating Mechanism
-$$
-\hat{\text{Gini}} = 0.472 
-- 1.35 \times 10^{-6} \cdot \text{MedianIncome} 
-+ 1.42 \times 10^{-7} \cdot \text{Poverty} 
-+ 0.00217 \cdot \text{EducationRate} 
-+ 0.00249 \cdot \text{UnemploymentRate}
-$$
-
+# 2.3 Predictions Plot
+```{r}
+ggplot(pred_data, aes(x = rowid, y = estimate)) +
+  geom_point(size = 1.5, color = "steelblue") +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), 
+                width = 0.2, color = "darkred", alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  labs(title = "Predicted Income Inequality in U.S",
+       subtitle = "Income Inequality in most of the counties is predicted between 0.4 to 0.5",
+       x = "Nuber of Counties",
+       y = "Predicted Gini Index",
+       caption = "Data Source: ACS 2020") +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", size = 14),
+        plot.subtitle = element_text(size = 12),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank())
+```
 

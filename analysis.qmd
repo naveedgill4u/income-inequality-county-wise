@@ -11,7 +11,6 @@ Following libraries were loaded for performing analysis.
 #| warning: false
 library(tidyverse)
 library(tidycensus)
-library(dplyr)
 library(GGally)
 library(ggplot2)
 library(ggthemes)
@@ -46,8 +45,8 @@ socio_clean <- socio_data |>
     gini = giniE,
     median_income = median_incomeE,
     poverty = povertyE,
-    education_rate = education_bachelorE / education_totalE * 100,
-    unemployment_rate = unemployedE / labor_forceE * 100)
+    education_rate = education_bachelorE / education_totalE,
+    unemployment_rate = unemployedE / labor_forceE)
 
 ```
 
@@ -68,8 +67,8 @@ plot_data <- socio_clean |>
     Gini = gini,
     `Log Income` = log_income,
     `Log Poverty` = log_poverty,
-    `Education Rate (%)` = education_rate,
-    `Unemployment Rate (%)` = unemployment_rate)
+    `Education Rate` = education_rate,
+    `Unemployment Rate` = unemployment_rate)
 
 # Plot
 ggpairs(
@@ -161,7 +160,7 @@ shapiro.test(education_rate)
 <div style="text-align: justify;">In case of both variables; unemployment_rate and education_rate, shapiro showed that distributions are not normal.</div>
 
 # 3.  Model
-<div style="text-align: justify;">Since my outcome variable was continues therfore, Liner Regression Model was applied. Following is the general form of a linear regression model.</div>
+<div style="text-align: justify;">My outcome variable was continues therfore, Liner Regression Model was applied. Following is the general form of a linear regression model.</div>
 
 $$
 Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_p X_{pi} + \varepsilon_i
@@ -187,16 +186,19 @@ L(\boldsymbol{\beta}, \sigma^2) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} 
 $$
 
 
-# 3.1 Regression Coefficients
+# 3.1 Coefficients
 Code for selection of variables for model and code for model
 ```{r}
 socio_clean1 <- socio_clean |>
-  select(gini, median_income ,poverty, education_rate, unemployment_rate )
+  mutate(
+    income = median_income / 100000,
+    poverty = poverty / 100000) |>
+  select(gini, income ,poverty, education_rate, unemployment_rate )
 ```
 
 ```{r}
 income_inequality <- linear_reg() |> 
-   fit(gini ~ median_income + poverty + education_rate + unemployment_rate, data = socio_clean1)
+   fit(gini ~ income + poverty + education_rate + unemployment_rate, data = socio_clean1)
 ```
 
 ```{r}
@@ -204,13 +206,32 @@ income_inequality |>
   tidy(conf.int = TRUE)
 ```
 
-<div style="text-align: justify;">EDA show that unemployment rate has negative correlation with income inequality but coeffients show that it predicts positivel. Hence, need for Variance Inflation Factor (VIF) analysis to see whether the change of coefficient sign is due to multicollinearity.</div>
+<div style="text-align: justify;">EDA show that education rate has negative correlation with income inequality but coeffients show that it predicts positively. Hence, need for Variance Inflation Factor (VIF) analysis to see whether the change of coefficient sign is due to multicollinearity.</div>
 
 # VIF analysis
 code and results
 ```{r}
-vif(lm(gini ~ median_income + poverty + education_rate + unemployment_rate, data = socio_clean1))
+vif(lm(gini ~ income + poverty + education_rate + unemployment_rate, data = socio_clean1))
 ```
 
-<div style="text-align: justify;">VIF between 1 to 5 means acceptable multicollinearity among predictors. However, beyound 5 means problematic. Here, VIF results show that there is no multicollinearity. Therefore, it was decided to remove unemployment rate because it may disturbe the model results because in model coefficients its results sign is not consistant with EDA</div>
+<div style="text-align: justify;">VIF between 1 to 5 means acceptable multicollinearity among predictors. However, beyound 5 means problematic. Here, VIF results show that there is no multicollinearity. Therefore, it was decided to remove education rate because it may disturbe the model results because in model coefficients its results sign is not consistant with EDA</div>
+
+# 3.2 Coefficients without education
+```{r}
+income_inequality <- linear_reg() |> 
+   fit(gini ~ income + poverty + unemployment_rate, data = socio_clean1)
+```
+
+```{r}
+income_inequality |> 
+  tidy(conf.int = TRUE)
+```
+
+# 3.3 Data Generating Mechanism
+$$
+\hat{\text{Gini}} = 0.475 
+- 0.0831 \cdot \text{Income} 
++ 0.0177 \cdot \text{Poverty}  
++ 0.265 \cdot \text{UnemploymentRate}
+$$
 
