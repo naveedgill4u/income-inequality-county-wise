@@ -7,34 +7,6 @@
     "text": "The data for analysis of income inequality in this project is used fromGini Index U.S. Census Bureau. 2022, ACS 5-Year Estimates. Gni Index, Table B19083 contains data of Income Inequality in U.S. Census Burea collects data through American Community Survey. ACS data is available on yearly basis survey and five year basis survey. I am deeply thankful to ** Preceptor ** for organizing Free Data Science Camp and guiding to access data from American Community Survey for using in this project.\nYou can approach to me through emailNaveed Ahmad. You can also visit me at Git hub to see my work about Data Analysis.\nTo see more about Icome Inequality project, swith to home tag above."
   },
   {
-    "objectID": "analysis.html",
-    "href": "analysis.html",
-    "title": "Analysis",
-    "section": "",
-    "text": "Following libraries were loaded for performing analysis.\n\nlibrary(tidyverse)\nlibrary(tidycensus)\nlibrary(GGally)\nlibrary(ggplot2)\nlibrary(ggthemes)\nlibrary(tidymodels)\nlibrary(car)"
-  },
-  {
-    "objectID": "analysis.html#libraries",
-    "href": "analysis.html#libraries",
-    "title": "Analysis",
-    "section": "",
-    "text": "Following libraries were loaded for performing analysis.\n\nlibrary(tidyverse)\nlibrary(tidycensus)\nlibrary(GGally)\nlibrary(ggplot2)\nlibrary(ggthemes)\nlibrary(tidymodels)\nlibrary(car)"
-  },
-  {
-    "objectID": "analysis.html#explanatory-data-analysis",
-    "href": "analysis.html#explanatory-data-analysis",
-    "title": "Analysis",
-    "section": "1. Explanatory Data Analysis",
-    "text": "1. Explanatory Data Analysis\nFollowing code was used for loading and tyding data.\n\nmulti_vars &lt;- c(\n  gini = \"B19083_001\",\n  median_income = \"B19013_001\",\n  poverty = \"B17001_002\",                    # Below poverty\n  education_total = \"B15003_001\",           # Total population 25+\n  education_bachelor = \"B15003_022\",        # Bachelor's degree\n  labor_force = \"B23025_003\",               # Labor force\n  unemployed = \"B23025_005\")                # Unemployed\n\nsocio_data &lt;- get_acs(\n  geography = \"county\",\n  variables = multi_vars,\n  year = 2020,\n  survey = \"acs5\",\n  output = \"wide\")\n\n# Clean and calculate additional metrics\nsocio_clean &lt;- socio_data |&gt;\n  transmute(\n    county = NAME,\n    gini = giniE,\n    median_income = median_incomeE,\n    poverty = povertyE,\n    education_rate = education_bachelorE / education_totalE,\n    unemployment_rate = unemployedE / labor_forceE)"
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "I am expert in Audit, Accounts, Finance and student of Data Analysis. I hold Master of Philosophy degree in Business Management with elective as Finance. I do love Data Analysis. I have prepared this project as an assignment of the free learning Data Science Camp. I am deeply thankful to Preceptor for guiding and organizing Free Data Science Camp.\nYou can approach to me through emailNaveed Ahmad. You can also visit me at Git hub to see my work about Data Analysis. You can directly see the directory of this project by clicking Git hub Repo\nTo see my project background and output, swith to home tag above."
-  },
-  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Income Inequality in U.S",
@@ -61,5 +33,47 @@
     "title": "Income Inequality in U.S",
     "section": "2. Model Results",
     "text": "2. Model Results\nModel plot and predictions plot are here under:"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "I am expert in Audit, Accounts, Finance and student of Data Analysis. I hold Master of Philosophy degree in Business Management with elective as Finance. I do love Data Analysis. I have prepared this project as an assignment of the free learning Data Science Camp. I am deeply thankful to Preceptor for guiding and organizing Free Data Science Camp.\nYou can approach to me through emailNaveed Ahmad. You can also visit me at Git hub to see my work about Data Analysis. You can directly see the directory of this project by clicking Git hub Repo\nTo see my project background and output, swith to home tag above."
+  },
+  {
+    "objectID": "analysis.html",
+    "href": "analysis.html",
+    "title": "Analysis",
+    "section": "",
+    "text": "Following libraries were loaded for performing analysis.\n\nlibrary(tidyverse)\nlibrary(tidycensus)\nlibrary(GGally)\nlibrary(ggplot2)\nlibrary(ggthemes)\nlibrary(tidymodels)\nlibrary(car)"
+  },
+  {
+    "objectID": "analysis.html#libraries",
+    "href": "analysis.html#libraries",
+    "title": "Analysis",
+    "section": "",
+    "text": "Following libraries were loaded for performing analysis.\n\nlibrary(tidyverse)\nlibrary(tidycensus)\nlibrary(GGally)\nlibrary(ggplot2)\nlibrary(ggthemes)\nlibrary(tidymodels)\nlibrary(car)"
+  },
+  {
+    "objectID": "analysis.html#explanatory-data-analysis",
+    "href": "analysis.html#explanatory-data-analysis",
+    "title": "Analysis",
+    "section": "1. Explanatory Data Analysis",
+    "text": "1. Explanatory Data Analysis\nFollowing code was used for loading and tyding data.\n\nmulti_vars &lt;- c(\n  gini = \"B19083_001\",\n  median_income = \"B19013_001\",\n  poverty = \"B17001_002\",                    # Below poverty\n  education_total = \"B15003_001\",           # Total population 25+\n  education_bachelor = \"B15003_022\",        # Bachelor's degree\n  labor_force = \"B23025_003\",               # Labor force\n  unemployed = \"B23025_005\")                # Unemployed\n\nsocio_data &lt;- get_acs(\n  geography = \"county\",\n  variables = multi_vars,\n  year = 2020,\n  survey = \"acs5\",\n  output = \"wide\")\n\n# Clean and calculate additional metrics\nsocio_clean &lt;- socio_data |&gt;\n  transmute(\n    county = NAME,\n    gini = giniE,\n    median_income = median_incomeE,\n    poverty = povertyE,\n    education_rate = education_bachelorE / education_totalE,\n    unemployment_rate = unemployedE / labor_forceE)"
+  },
+  {
+    "objectID": "model.html",
+    "href": "model.html",
+    "title": "Model",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(tidycensus)\nlibrary(tidymodels)\n# libraries needed for loading data and model\nmulti_vars &lt;- c(\n  gini = \"B19083_001\",                \n  median_income = \"B19013_001\",\n  poverty = \"B17001_002\",                    # Below poverty\n  education_total = \"B15003_001\",           # Total population 25+\n  education_bachelor = \"B15003_022\",        # Bachelor's degree\n  labor_force = \"B23025_003\",               # Labor force\n  unemployed = \"B23025_005\")                # Unemployed\n\nsocio_data &lt;- get_acs(\n  geography = \"county\",\n  variables = multi_vars,\n  year = 2020,\n  survey = \"acs5\",\n  output = \"wide\")\n# Clean and calculate additional metrics\nsocio_clean &lt;- socio_data |&gt;\n  transmute(\n    county = NAME,\n    gini = giniE,\n    median_income = median_incomeE,\n    poverty = povertyE,\n    education_rate = education_bachelorE / education_totalE,\n    unemployment_rate = unemployedE / labor_forceE)\nsocio_clean1 &lt;- socio_clean |&gt;\n  mutate(\n    income = median_income / 100000,\n    poverty = poverty / 100000) |&gt;\n  select(gini, income ,poverty, unemployment_rate )"
+  },
+  {
+    "objectID": "model.html#model",
+    "href": "model.html#model",
+    "title": "Model",
+    "section": "Model",
+    "text": "Model\n\nMy outcome variable was continues therfore, Liner Regression Model was applied. Following is the general form of a linear regression model.\n\n\\[\nY_i = \\beta_0 + \\beta_1 X_{1i} + \\beta_2 X_{2i} + \\cdots + \\beta_p X_{pi} + \\varepsilon_i\n\\]\nWhere: - ( Y_i ) is the dependent (response) variable, - ( X_{1i}, X_{2i}, , X_{pi} ) are the independent variables (predictors), - ( _0 ) is the intercept, - ( _1, , _p ) are regression coefficients, - ( _i (0, ^2) ) is the error term assumed to follow a normal distribution.\nProbability Family Function when the outcome variable is normally distributed:\n\\[\nY_i \\sim \\mathcal{N}(\\mu_i, \\sigma^2), \\quad \\text{where} \\quad \\mu_i = \\beta_0 + \\beta_1 X_{1i} + \\cdots + \\beta_p X_{pi}\n\\]\nThe likelihood function for all ( n ) observations is:\n\\[\nL(\\boldsymbol{\\beta}, \\sigma^2) = \\prod_{i=1}^{n} \\frac{1}{\\sqrt{2\\pi\\sigma^2}} \\exp\\left( -\\frac{(Y_i - \\mu_i)^2}{2\\sigma^2} \\right)\n\\]"
   }
 ]
