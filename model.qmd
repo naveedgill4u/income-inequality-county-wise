@@ -1,0 +1,97 @@
+---
+title: "Model"
+author: Naveed Ahmad
+format: html
+---
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(tidycensus)
+library(tidymodels)
+# libraries needed for loading data and model
+```
+
+```{r}
+#| warning: false
+multi_vars <- c(
+  gini = "B19083_001",                
+  median_income = "B19013_001",
+  poverty = "B17001_002",                    # Below poverty
+  education_total = "B15003_001",           # Total population 25+
+  education_bachelor = "B15003_022",        # Bachelor's degree
+  labor_force = "B23025_003",               # Labor force
+  unemployed = "B23025_005")                # Unemployed
+
+socio_data <- get_acs(
+  geography = "county",
+  variables = multi_vars,
+  year = 2020,
+  survey = "acs5",
+  output = "wide")
+# Clean and calculate additional metrics
+socio_clean <- socio_data |>
+  transmute(
+    county = NAME,
+    gini = giniE,
+    median_income = median_incomeE,
+    poverty = povertyE,
+    education_rate = education_bachelorE / education_totalE,
+    unemployment_rate = unemployedE / labor_forceE)
+```
+
+```{r}
+socio_clean1 <- socio_clean |>
+  mutate(
+    income = median_income / 100000,
+    poverty = poverty / 100000) |>
+  select(gini, income ,poverty, unemployment_rate )
+```
+
+## Model
+<div style="text-align: justify;">My outcome variable was continues therfore, Liner Regression Model was applied. Following is the general form of a linear regression model.</div>
+
+$$
+Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_p X_{pi} + \varepsilon_i
+$$
+
+Where:
+- \( Y_i \) is the dependent (response) variable,
+- \( X_{1i}, X_{2i}, \ldots, X_{pi} \) are the independent variables (predictors),
+- \( \beta_0 \) is the intercept,
+- \( \beta_1, \ldots, \beta_p \) are regression coefficients,
+- \( \varepsilon_i \sim \mathcal{N}(0, \sigma^2) \) is the error term assumed to follow a normal distribution.
+
+Probability Family Function when the outcome variable is normally distributed:
+
+$$
+Y_i \sim \mathcal{N}(\mu_i, \sigma^2), \quad \text{where} \quad \mu_i = \beta_0 + \beta_1 X_{1i} + \cdots + \beta_p X_{pi}
+$$
+
+The likelihood function for all \( n \) observations is:
+
+$$
+L(\boldsymbol{\beta}, \sigma^2) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{(Y_i - \mu_i)^2}{2\sigma^2} \right)
+$$
+
+
+# 3.2 Coefficients
+```{r}
+income_inequality <- linear_reg() |> 
+   fit(gini ~ income + poverty + unemployment_rate, data = socio_clean1)
+```
+
+```{r}
+income_inequality |> 
+  tidy(conf.int = TRUE)
+```
+
+# 3.3 Data Generating Mechanism
+$$
+\hat{\text{Gini}} = 0.475 
+- 0.0831 \cdot \text{Income} 
++ 0.0177 \cdot \text{Poverty}  
++ 0.265 \cdot \text{UnemploymentRate}
+$$
+

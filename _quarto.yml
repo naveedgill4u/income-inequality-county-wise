@@ -9,9 +9,11 @@ website:
         text: Home
       - about.qmd
       - href: analysis.qmd
-        text: Analysis     
+        text: Analysis   
+      - href: model.qmd
+        text: Model        
       - href: source.qmd
-        text: Source
+        text: Sources
 format:
   html:
     theme:
