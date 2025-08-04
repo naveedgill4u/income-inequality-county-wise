@@ -6,8 +6,8 @@ execute:
 ---
 
 ## Summary
-<div style="text-align: justify;"> United Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the globe. In this document, I have explained a picture of income inequality in U.S by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality, index value 0.4 and above means income inequality.
-Income Inequality (gini) has link with many social indicators however, in this study, outcome variable is gini with covariates, income, poverty, education rate and unemployment rate in U.S. First, EDA was conducted. Then, liner regression model was used to predict the income inequality as function of income, poverty, and unemployment rate. The predictions of this study are based upon some assumptions, for example, if there is change in income, poverty and unemployment rate due to reforms or other opportunities, the future results may be different. The intercept shows that holding other things constant, income inequality (Gini Index) in U.S is predicted to be 0.475 with variation from 0.468 to 0.481 which means policy makers in U.S have to address it to chase the goal set by UN</div>
+<div style="text-align: justify;"> United Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the globe. I have examined income inequality in U.S by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality, index value 0.4 and above means income inequality.
+First, EDA was conducted. Then, liner regression model was used to predict the income inequality as function of income, poverty, and unemployment rate. The predictions are based upon some assumptions, if there is change in income, poverty and unemployment rate due to reforms or other opportunities, the actual results may vary. The income inequality (Gini Index) in U.S is predicted between 0.4 to 0.5 in most of the counties with a few exceptions.</div>
 
 ```{r}
 #| message: false
@@ -105,7 +105,7 @@ fit_income_inequality <- linear_reg() |>
    fit(gini ~ income + poverty + unemployment_rate, data = socio_clean)
 ```
 
-# 2.2 Model Plot
+# 2.2 Model Prediction
 ```{r}
 tidy(fit_income_inequality) |>
   filter(term %in% c("income", "poverty", "unemployment_rate")) |>
@@ -118,7 +118,7 @@ tidy(fit_income_inequality) |>
 pred_data <- predictions(fit_income_inequality)
 ```
 
-# 2.3 Predictions Plot
+# 2.3 Prediction of Gini
 ```{r}
 ggplot(pred_data, aes(x = rowid, y = estimate)) +
   geom_point(size = 1.5, color = "steelblue") +
@@ -126,7 +126,8 @@ ggplot(pred_data, aes(x = rowid, y = estimate)) +
                 width = 0.2, color = "darkred", alpha = 0.6) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
   labs(title = "Predicted Income Inequality in U.S",
-       subtitle = "Income Inequality in most of the counties is predicted between 0.4 to 0.5",
+       subtitle = "Blue points show Inequality and red show range of certanity
+        in most of the counties prediction is between 0.4 to 0.5",
        x = "Nuber of Counties",
        y = "Predicted Gini Index",
        caption = "Data Source: ACS 2020") +
