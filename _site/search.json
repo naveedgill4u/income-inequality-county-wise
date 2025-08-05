@@ -7,32 +7,11 @@
     "text": "The data for analysis of income inequality in this project is used fromGini Index U.S. Census Bureau. 2022, ACS 5-Year Estimates. Gni Index, Table B19083 contains data of Income Inequality in U.S. Census Burea collects data through American Community Survey. ACS data is available on yearly basis survey and five year basis survey.\nI am deeply thankful to ** Preceptor ** for organizing Free Data Science Camp and guiding to access data from American Community Survey for using in this project.\nI have used AI tools for analysis and data wrengling.\nYou can approach to me through emailNaveed Ahmad. You can also visit me at Git hub to see my work about Data Analysis."
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Income Inequality in U.S",
-    "section": "",
-    "text": "United Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the globe. I have examined income inequality in U.S by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality, index value 0.4 and above means income inequality. First, EDA was conducted. Then, liner regression model was used to predict the income inequality as function of income, poverty, and unemployment rate. The predictions are based upon some assumptions, if there is change in income, poverty and unemployment rate due to reforms or other opportunities, the actual results may vary. The income inequality (Gini Index) in U.S is predicted between 0.4 to 0.5 in most of the counties with a few exceptions."
-  },
-  {
     "objectID": "index.html#summary",
     "href": "index.html#summary",
     "title": "Income Inequality in U.S",
     "section": "Summary",
     "text": "Summary\n\nUnited Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the globe. I have examined income inequality in U.S by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality, index value 0.4 and above means income inequality. First, EDA was conducted. Then, liner regression model predicted the income inequality as function of income, poverty, and unemployment rate. The predictions are based upon some assumptions, if there is change in income, poverty and unemployment rate due to reforms or other opportunities, the actual results may vary. The income inequality (Gini Index) in U.S is predicted between 0.4 to 0.6 in most of the counties with a few exceptions."
-  },
-  {
-    "objectID": "index.html#explanatory-data-analysis",
-    "href": "index.html#explanatory-data-analysis",
-    "title": "Income Inequality in U.S",
-    "section": "1. Explanatory Data Analysis",
-    "text": "1. Explanatory Data Analysis\n\nIncrese in Education and Income had reduced income inequality whereas, increse in unemployment and poverty had incresed income inequality. The relationship among income inequality (gini) and other social indicators can be seen in plot. Log of income and poverty were taken for better comparision purpose. Further, Histograms of every indicator can also be seen in dignal which shows that distributions of gini, log income, log poverty are normal but distributions of education rate and unemployment rate are slightly and significantly right skewed respectively."
-  },
-  {
-    "objectID": "index.html#model-results",
-    "href": "index.html#model-results",
-    "title": "Income Inequality in U.S",
-    "section": "2. Model Results",
-    "text": "2. Model Results\nModel plot and predictions plot are here under:"
   },
   {
     "objectID": "about.html",
@@ -47,13 +26,6 @@
     "title": "Analysis",
     "section": "",
     "text": "Following is EDA."
-  },
-  {
-    "objectID": "analysis.html#libraries",
-    "href": "analysis.html#libraries",
-    "title": "Analysis",
-    "section": "",
-    "text": "Following libraries were loaded for performing analysis.\n\nlibrary(tidyverse)\nlibrary(tidycensus)\nlibrary(GGally)\nlibrary(ggplot2)\nlibrary(ggthemes)\nlibrary(tidymodels)\nlibrary(car)\nlibrary(marginaleffects)\nlibrary(broom)"
   },
   {
     "objectID": "analysis.html#explanatory-data-analysis",
