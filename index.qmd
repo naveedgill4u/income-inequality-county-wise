@@ -105,7 +105,7 @@ ggplotly(plot_interactive, tooltip = "text") |>
 ```
 
 <div style="text-align: justify;"> United Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the globe. I have examined income inequality in U.S by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality, index value 0.4 and above means income inequality.
-First, EDA was conducted. Then, liner regression model predicted the income inequality as function of income, poverty, and unemployment rate. The predictions are based upon some assumptions, if there is change in income, poverty and unemployment rate due to reforms or other opportunities, the actual results may vary. The income inequality (Gini Index) in U.S is predicted to be 0.48, with a 95% CI of 0.46 to 0.49 in most of the counties.</div>
+First, EDA was conducted. Then, liner regression model predicted the income inequality as function of income, poverty, and unemployment rate. The predictions are based upon some assumptions, if there is change in income, poverty and unemployment rate due to reforms or other opportunities, the actual results may vary. The income inequality (Gini Index) in U.S is predicted to be 0.48, with a 95% CI of 0.46 to 0.5 in most of the counties.</div>
 
 
 
