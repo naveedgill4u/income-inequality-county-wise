@@ -3,11 +3,11 @@ title: "About"
 author: Naveed Ahmad
 ---
 
-<div style="text-align: justify;">I am expert in Audit, Accounts, Finance and student of Data Analysis. I hold Master of Philosophy degree in Business Management with elective as Finance. I do love Data Analysis. I have prepared this project as an assignment of the free learning Data Science Camp. I am deeply thankful to **Preceptor** for guiding and organizing [*Free Data Science Camp*](https://bootcamp.davidkane.info/). 
+<div style="text-align: justify;">I am expert in Audit, Accounts, Finance and student of Data Analysis. I hold Master of Philosophy degree in Business Management with elective as Finance. I do love Data Analysis. I have prepared this project as an assignment of the free learning Data Science Camp. 
 
-You can approach to me through email[*Naveed Ahmad*](naveedgill4u@yahoo.com). You can also visit me at [Git hub](https://github.com/naveedgill4u) to see my work about Data Analysis. You can directly see the directory of this project by clicking [Git hub Repo](https://github.com/naveedgill4u/income-inequality-county-wise)
+I am deeply thankful to **Preceptor** for guiding and organizing [*Free Data Science Camp*](https://bootcamp.davidkane.info/). 
 
-To see my project background and output, swith to home tag above.
+You can approach to me through email[*Naveed Ahmad*](naveedgill4u@yahoo.com). You can also visit me at [Git hub](https://github.com/naveedgill4u) to see my work about Data Analysis. You can directly see the directory of this project by clicking [Git hub Repo](https://github.com/naveedgill4u/income-inequality-county-wise).
 </div> 
 
 

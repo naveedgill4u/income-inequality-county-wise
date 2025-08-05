@@ -1,13 +1,8 @@
 ---
 title: "Income Inequality in U.S"
-author: Naveed Ahmad
 execute: 
   echo: false
 ---
-
-## Summary
-<div style="text-align: justify;"> United Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the globe. I have examined income inequality in U.S by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality, index value 0.4 and above means income inequality.
-First, EDA was conducted. Then, liner regression model was used to predict the income inequality as function of income, poverty, and unemployment rate. The predictions are based upon some assumptions, if there is change in income, poverty and unemployment rate due to reforms or other opportunities, the actual results may vary. The income inequality (Gini Index) in U.S is predicted between 0.4 to 0.5 in most of the counties with a few exceptions.</div>
 
 ```{r}
 #| message: false
@@ -18,9 +13,9 @@ library(GGally)
 library(ggplot2)
 library(ggthemes)
 library(tidymodels)
-library(car)
 library(marginaleffects)
 library(broom)
+library(plotly)
 ```
 
 ```{r}
@@ -44,97 +39,74 @@ socio_data <- get_acs(
 # Clean and calculate additional metrics
 socio_clean <- socio_data |>
   transmute(
+    GEOID = GEOID,
     county = NAME,
     gini = giniE,
-    median_income = median_incomeE,
-    poverty = povertyE,
+    income = median_incomeE / 100000,
+    poverty = povertyE / 100000,
     education_rate = education_bachelorE / education_totalE,
-    unemployment_rate = unemployedE / labor_forceE)
-```
-
-## 1. Explanatory Data Analysis
-<div style="text-align: justify;">Increse in Education and Income had reduced income inequality whereas, increse in unemployment and poverty had incresed income inequality. The relationship among income inequality (gini) and other social indicators can be seen in plot. Log of income and poverty were taken for better comparision purpose. Further, Histograms of every indicator can also be seen in dignal which shows that distributions of gini, log income, log poverty are normal but distributions of education rate and unemployment rate are slightly and significantly right skewed respectively.</div>
-
-
-```{r}
-#| warning: false
-plot_data <- socio_clean |>
-  mutate(
-    log_income = log(median_income),
-    log_poverty = log(poverty + 1)) |>
-  select(
-    Gini = gini,
-    `Log Income` = log_income,
-    `Log Poverty` = log_poverty,
-    `Education Rate` = education_rate,
-    `Unemployment Rate` = unemployment_rate)
-
-# Plot
-ggpairs(
-  plot_data,
-  lower = list(continuous = function(data, mapping, ...) {
-    ggplot(data = data, mapping = mapping) +
-      geom_point(alpha = 0.6, color = "skyblue") +
-      geom_smooth(method = "loess", se = FALSE, color = "red", linetype = "dashed", size = 0.5)}),
-  upper = list(continuous = wrap("cor", size = 3)),
-  diag = list(continuous = wrap("densityDiag", alpha = 0.4, fill = "#69b3a2"))) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", size = 16),
-    plot.subtitle = element_text(size = 12, color = "gray30"),
-    plot.caption = element_text(size = 10, color = "gray40"),
-    strip.text.y = element_text(angle = 0, hjust = 1))  +
-  labs(
-    title = "Income Inequality with other Indicators in U.S",
-    subtitle = "Education and Income have negative But Povery and Unemployment have positive relationship with Income Inequality",
-    caption = "Source: American Community Survey (ACS) 2020")
-```
-
-## 2.  Model Results
-Model plot and predictions plot are here under:
-```{r}
-socio_clean <- socio_clean |>
-  mutate(
-    income = median_income / 100000,
-    poverty = poverty / 100000) |>
-  select(gini, income ,poverty, unemployment_rate )
+    unemployment_rate = unemployedE / labor_forceE) |>
+    select(GEOID, county, gini, income ,poverty, unemployment_rate )
 ```
 
 ```{r}
-fit_income_inequality <- linear_reg() |> 
+income_inequality <- linear_reg() |> 
    fit(gini ~ income + poverty + unemployment_rate, data = socio_clean)
 ```
 
-# 2.2 Model Prediction
 ```{r}
-tidy(fit_income_inequality) |>
-  filter(term %in% c("income", "poverty", "unemployment_rate")) |>
-  ggplot(aes(x = term, y = estimate)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = estimate - 1.96*std.error, 
-                    ymax = estimate + 1.96*std.error))
-```
-```{r}
-pred_data <- predictions(fit_income_inequality)
+# 2. Create predictions with county names
+pred_data <- socio_clean |>
+  bind_cols(
+    predict(income_inequality, new_data = socio_clean),
+    predict(income_inequality, new_data = socio_clean, type = "conf_int")
+  ) |>
+  rename(.fitted = .pred, .lower = .pred_lower, .upper = .pred_upper)
 ```
 
-# 2.3 Prediction of Gini
 ```{r}
-ggplot(pred_data, aes(x = rowid, y = estimate)) +
-  geom_point(size = 1.5, color = "steelblue") +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), 
-                width = 0.2, color = "darkred", alpha = 0.6) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
-  labs(title = "Predicted Income Inequality in U.S",
-       subtitle = "Blue points show Inequality and red show range of certanity
-        in most of the counties prediction is between 0.4 to 0.5",
-       x = "Nuber of Counties",
-       y = "Predicted Gini Index",
-       caption = "Data Source: ACS 2020") +
-  theme_minimal() +
-  theme(plot.title = element_text(face = "bold", size = 14),
-        plot.subtitle = element_text(size = 12),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank())
+# 3. Create interactive plot (now with county names)
+plot_interactive <- pred_data |> 
+  ggplot(aes(
+    x = .fitted, 
+    y = gini,
+    color = unemployment_rate,
+    text = paste(
+      "County:", county,
+      "<br>Predicted Gini:", round(.fitted, 3),
+      "<br>Actual Gini:", round(gini, 3),
+      "<br>Unemployment:", scales::percent(unemployment_rate, accuracy = 0.1),
+      "<br>Income:", scales::dollar(income * 100000)
+    )
+  )) +
+  geom_point(aes(size = poverty), alpha = 0.7) +
+  geom_errorbarh(
+    aes(xmin = .lower, xmax = .upper),
+    height = 0.002, alpha = 0.5
+  ) +
+  geom_abline(slope = 1, linetype = "dashed", color = "gray") +
+  scale_color_viridis_c(option = "plasma", labels = scales::percent) +
+  scale_size_continuous(
+    range = c(1, 10),
+    labels = scales::dollar_format(scale = 1e5)
+  ) +
+  labs(
+    title = "Actual vs. Predicted Income Inequality in U.S",
+    x = "Predicted Gini",
+    y = "Actual Gini",
+    color = "Unemp. Rate",
+    size = "Poverty (×$100K)",
+    caption = "Data Source: ACS 2020"
+  )
+
+# 4. Convert to interactive plot
+ggplotly(plot_interactive, tooltip = "text") |> 
+  layout(hoverlabel = list(bgcolor = "white"))
 ```
+
+## Summary
+<div style="text-align: justify;"> United Nation has set through SDG 10 to minimize gap of income inequality among people for sustainable development. Income inequality is burning issue for all nations around the globe. I have examined income inequality in U.S by using data from American Community Servey (ACS) 2020. Gini Index table has the data of income inequality, index value 0.4 and above means income inequality.
+First, EDA was conducted. Then, liner regression model predicted the income inequality as function of income, poverty, and unemployment rate. The predictions are based upon some assumptions, if there is change in income, poverty and unemployment rate due to reforms or other opportunities, the actual results may vary. The income inequality (Gini Index) in U.S is predicted between 0.4 to 0.6 in most of the counties with a few exceptions.</div>
+
+
 

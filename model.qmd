@@ -1,6 +1,7 @@
 ---
 title: "Model"
-author: Naveed Ahmad
+execute: 
+  echo: false 
 format: html
 ---
 
@@ -42,7 +43,7 @@ socio_clean <- socio_data |>
 ```
 
 ```{r}
-socio_clean1 <- socio_clean |>
+socio_clean <- socio_clean |>
   mutate(
     income = median_income / 100000,
     poverty = poverty / 100000) |>
@@ -79,7 +80,7 @@ $$
 # 3.2 Coefficients
 ```{r}
 income_inequality <- linear_reg() |> 
-   fit(gini ~ income + poverty + unemployment_rate, data = socio_clean1)
+   fit(gini ~ income + poverty + unemployment_rate, data = socio_clean)
 ```
 
 ```{r}
@@ -95,3 +96,39 @@ $$
 + 0.265 \cdot \text{UnemploymentRate}
 $$
 
+# 3.4 Model Prediction
+
+```{r}
+income_inequality |>
+  tidy() |>
+  filter(term %in% c("income", "poverty", "unemployment_rate")) |>
+  ggplot(aes(x = term, y = estimate, color = term)) +
+  geom_point(size = 4) +
+  geom_errorbar(
+    aes(ymin = estimate - 1.96 * std.error, 
+        ymax = estimate + 1.96 * std.error),
+    width = 0.3, 
+    size = 1.2
+  ) +
+  scale_color_viridis_d() +
+  labs(
+    title = "Income Inequality Predicted by Income, Poverty, & Unemployment",
+    subtitle = "Income predicts negatively, while poverty and unemployment predict positively",
+    x = "Predictor Variable",
+    y = "Predicted Estimate",
+    caption = "Data source: ACS 2020"  # <- Fixed: Added missing quotation mark
+  ) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "gray95"),
+    plot.background = element_rect(fill = "white", color = "white"),
+    panel.grid.major = element_line(color = "white"),
+    panel.grid.minor = element_line(color = "white"),
+    plot.title = element_text(face = "bold", size = 15.5, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5, color = "gray30"),
+    plot.caption = element_text(size = 9, color = "gray50", hjust = 1),
+    legend.position = "none"
+  )
+```
+
+<div style="text-align: justify;"> Increase in income reduces income inequality by -0.083 on the other hand, increse in poverty and unemployment rate increse income inequality by 0.018 and 0.265 respectively. Unemployment rate predicts higher than others.</div>
